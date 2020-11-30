@@ -13,6 +13,7 @@ const alias = {
   ignoreCase: ['ignore-case', 'i'],
   indentSize: ['indent-size', 'spaces'],
   noFinalNewLine: ['no-final-newline', 'nn'],
+  arrayPropName: ['array-prop-name', 'p'],
 };
 
 const argv = minimist(process.argv.slice(2), { alias });

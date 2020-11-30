@@ -7,6 +7,7 @@
  *                                            that capitalization doesn't interfere with sort order
  * @param [options.ignoreCase = false]      - When sorting keys, converts all keys to
  * @param [options.depth = Infinity]        - Depth's level sorting keys on a
+ * @param [options.arrayPropName = ""]      - Deep sort arrays by containing objects property
  *                                            multidimensional object
  * @returns {*}                             - Object with sorted keys, if old wasn't an object
  *                                            returns whatever was passed
@@ -24,22 +25,30 @@ function visit(old, options) {
     return old;
   }
 
-  const copy = Array.isArray(old) ? [] : {};
+  const isArray = Array.isArray(old);
+  const copy = isArray ? [] : {};
+
   let keys = Object.keys(old);
   if (processing) {
-    keys = ignoreCase ?
-      keys.sort((left, right) => left.toLowerCase().localeCompare(right.toLowerCase())) :
-      keys.sort();
+    let compare = isArray && sortOptions.arrayPropName
+      ? (left, right) => {
+        const leftKey = old[left][sortOptions.arrayPropName] || left;
+        const rightKey = old[right][sortOptions.arrayPropName] || right;
+        return ignoreCase ? leftKey.toLowerCase().localeCompare(rightKey.toLowerCase()) : leftKey.localeCompare(rightKey);
+      }
+      : ignoreCase ? (left, right) => left.toLowerCase().localeCompare(right.toLowerCase()) : undefined;
+
+    keys.sort(compare);
   }
 
   if (reverse) {
     keys = keys.reverse();
   }
 
-  keys.forEach((key) => {
+  keys.forEach((key, idx) => {
     const subSortOptions = Object.assign({}, sortOptions);
     subSortOptions.level = level + 1;
-    copy[key] = visit(old[key], subSortOptions);
+    copy[isArray ? idx : key] = visit(old[key], subSortOptions);
   });
 
   return copy;
